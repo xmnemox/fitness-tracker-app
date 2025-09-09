@@ -1,736 +1,1127 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fitness & Diet Tracker (Demo)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-    .container { max-width: 1000px; padding: 1rem; }
-    .card { background-color: #ffffff; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 2rem; margin-bottom: 1.5rem; }
-    .input-group label { font-weight: 600; color: #4b5563; }
-    .input-group input, .input-group textarea, .input-group select { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem; width: 100%; transition: all 0.2s; }
-    .input-group input:focus, .input-group textarea:focus, .input-group select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
-    .btn { background-color: #6366f1; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; cursor: pointer; text-align: center; }
-    .btn:hover { background-color: #4f46e5; }
-    .message-box { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); padding: 0.75rem 1rem; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background-color: #4CAF50; color: white; text-align: center; opacity: 0; transition: opacity 0.4s, transform 0.4s; z-index: 1000; }
-    .message-box.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .message-box.error { background-color: #f44336; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness & Diet Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 900px;
+            padding: 1rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .input-group input, .input-group textarea, .input-group select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .btn {
+            background-color: #6366f1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn:hover {
+            background-color: #4f46e5;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        @media (max-width: 768px) {
+            .grid-3, .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        .message-box {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            z-index: 1000;
+        }
+        .message-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .message-box.error {
+            background-color: #f44336;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 flex justify-center items-start min-h-screen">
 
-  <!-- Message Box -->
-  <div id="message-box" class="message-box" aria-live="polite"></div>
+    <!-- Message Box -->
+    <div id="message-box" class="message-box"></div>
 
-  <div class="container mx-auto">
-    <header class="text-center my-8">
-      <h1 class="text-4xl font-bold text-gray-800">Fitness & Diet Tracker</h1>
-      <p class="text-gray-500 mt-2">Monitora i tuoi progressi fino al 21 dicembre 2025.</p>
-      <p class="text-gray-500 mt-2">ID Utente: <span id="user-id" class="font-mono text-xs text-gray-600 bg-gray-200 px-2 py-1 rounded-full">Caricamento...</span></p>
-      <p class="text-xs text-gray-400 mt-1">Demo locale: i dati vengono salvati nel browser (localStorage).</p>
-    </header>
+    <div class="container mx-auto">
+        <header class="text-center my-8">
+            <h1 class="text-4xl font-bold text-gray-800">Fitness & Diet Tracker</h1>
+            <p class="text-gray-500 mt-2">Monitora i tuoi progressi fino al 21 dicembre 2025.</p>
+            <p class="text-gray-500 mt-2">ID Utente: <span id="user-id" class="font-mono text-xs text-gray-600 bg-gray-200 px-2 py-1 rounded-full">Caricamento...</span></p>
+        </header>
 
-    <!-- Impostazioni Utente -->
-    <div class="card">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">Impostazioni Utente</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="input-group">
-          <label for="altezza">Altezza (cm):</label>
-          <input type="number" id="altezza" step="1" placeholder="Es. 175" min="80" max="250">
+        <!-- Impostazioni Utente Section -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Impostazioni Utente</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <!-- Altezza -->
+                 <div class="input-group">
+                     <label for="altezza">Altezza (cm):</label>
+                     <input type="number" id="altezza" step="1" placeholder="Es. 175">
+                 </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                 <div class="input-group">
+                     <label for="dailyWaterGoal">Obiettivo Acqua (L):</label>
+                     <input type="number" id="dailyWaterGoal" step="0.1" placeholder="Es. 2.0">
+                 </div>
+                 <div class="input-group">
+                     <label for="dailyCaloriesGoal">Obiettivo Calorie (kcal):</label>
+                     <input type="number" id="dailyCaloriesGoal" placeholder="Es. 2000">
+                 </div>
+                 <div class="input-group">
+                     <label for="dailyProteinGoal">Obiettivo Proteine (g):</label>
+                     <input type="number" id="dailyProteinGoal" placeholder="Es. 150">
+                 </div>
+            </div>
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-4">
+                 <div class="input-group">
+                     <label for="dailyCarbsGoal">Obiettivo Carboidrati (g):</label>
+                     <input type="number" id="dailyCarbsGoal" placeholder="Es. 220">
+                 </div>
+                 <div class="input-group">
+                     <label for="dailyFatsGoal">Obiettivo Grassi (g):</label>
+                     <input type="number" id="dailyFatsGoal" placeholder="Es. 70">
+                 </div>
+            </div>
+            <button id="save-settings-btn" class="btn w-full mt-6">Salva Impostazioni</button>
         </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-        <div class="input-group">
-          <label for="dailyWaterGoal">Obiettivo Acqua (L):</label>
-          <input type="number" id="dailyWaterGoal" step="0.1" placeholder="Es. 2.0" min="0.1">
+
+        <!-- Obiettivi e Progressi Section -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Obiettivi e Progressi</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="input-group">
+                    <label>Aderenza settimanale peso (-0.5kg/settimana):</label>
+                    <span id="weekly-adherence" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
+                </div>
+                 <div class="input-group">
+                    <label>Raggiungimento obiettivo totale (-7kg):</label>
+                    <span id="total-progress" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
+                </div>
+            </div>
+            <button id="get-summary-btn" class="btn w-full mt-6 flex items-center justify-center">
+                Ottieni un'Analisi Personalizzata ✨
+            </button>
         </div>
-        <div class="input-group">
-          <label for="dailyCaloriesGoal">Obiettivo Calorie (kcal):</label>
-          <input type="number" id="dailyCaloriesGoal" placeholder="Es. 2000" min="200">
+        
+        <!-- Analisi AI Section -->
+        <div class="card hidden" id="ai-summary-card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">La tua Analisi ✨</h2>
+            <div id="ai-summary-content" class="text-gray-600 text-base leading-relaxed">
+                <!-- AI summary will be displayed here -->
+            </div>
         </div>
-        <div class="input-group">
-          <label for="dailyProteinGoal">Obiettivo Proteine (g):</label>
-          <input type="number" id="dailyProteinGoal" placeholder="Es. 150" min="10">
+
+        <!-- Dati Giornalieri Section -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Dati Giornalieri</h2>
+            <div class="mb-4">
+                <label for="date-picker" class="block text-sm font-medium text-gray-700 mb-1">Seleziona Data:</label>
+                <input type="date" id="date-picker" class="w-full">
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Composizione Corporea -->
+                <div class="col-span-1 border-r border-gray-200 pr-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Composizione Corporea</h3>
+                    <div class="input-group mb-4">
+                        <label for="peso">Peso (kg):</label>
+                        <input type="number" id="peso" step="0.1" placeholder="Es. 75.5">
+                    </div>
+                    <div class="input-group mb-4">
+                        <label>BMI/IMC:</label>
+                        <span id="bmi" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="massa-grassa-perc">Massa Grassa (%):</label>
+                        <input type="number" id="massa-grassa-perc" step="0.1" placeholder="Es. 15.2">
+                    </div>
+                    <div class="input-group mb-4">
+                        <label>Massa Grassa (kg):</label>
+                        <span id="massa-grassa-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="massa-magra-perc">Massa Magra (%):</label>
+                        <input type="number" id="massa-magra-perc" step="0.1" placeholder="Es. 80.5">
+                    </div>
+                    <div class="input-group mb-4">
+                        <label>Massa Magra (kg):</label>
+                        <span id="massa-magra-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="massa-ossea-perc">Massa Ossea (%):</label>
+                        <input type="number" id="massa-ossea-perc" step="0.1" placeholder="Es. 4.3">
+                    </div>
+                    <div class="input-group mb-4">
+                        <label>Massa Ossea (kg):</label>
+                        <span id="massa-ossea-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="massa-acqua-perc">Massa Acqua (%):</label>
+                        <input type="number" id="massa-acqua-perc" step="0.1" placeholder="Es. 55.7">
+                    </div>
+                    <div class="input-group mb-4">
+                        <label>Massa Acqua (kg):</label>
+                        <span id="massa-acqua-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
+                    </div>
+                </div>
+
+                <!-- Allenamento -->
+                <div class="col-span-1 border-r border-gray-200 pr-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Allenamento</h3>
+                    <div class="input-group mb-4">
+                        <label for="esercizio-tipo">Tipo di esercizio:</label>
+                        <select id="esercizio-tipo" class="w-full">
+                            <option value="">Seleziona...</option>
+                            <option value="Biking">Biking</option>
+                            <option value="Running">Running</option>
+                            <option value="HIIT">HIIT</option>
+                            <option value="Riposo">Riposo</option>
+                            <option value="Corpo Libero">Corpo Libero</option>
+                            <option value="Camminata">Camminata</option>
+                        </select>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="esercizio-tempo">Tempo (min):</label>
+                        <input type="number" id="esercizio-tempo" placeholder="Es. 30">
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="intensita-percepita">Intensità percepita (1-10):</label>
+                        <input type="number" id="intensita-percepita" min="1" max="10" placeholder="Es. 7">
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="esercizio-quantita">Dettagli specifici:</label>
+                        <textarea id="esercizio-quantita" rows="2" placeholder="Es. 5 km, 15 push-up, 3 giri"></textarea>
+                    </div>
+                    <div class="input-group flex items-center mb-4">
+                        <input type="checkbox" id="creatina" class="h-5 w-5 rounded-md text-indigo-600 focus:ring-indigo-500">
+                        <label for="creatina" class="ml-2 font-semibold text-sm">Ho preso la creatina</label>
+                    </div>
+                </div>
+            
+                <!-- Nutrizione - Obiettivi -->
+                <div class="col-span-1">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Nutrizione - Obiettivi</h3>
+                    <div class="input-group mb-4">
+                        <label for="calorie">Calorie totali (kcal):</label>
+                        <input type="number" id="calorie" placeholder="Es. 2000">
+                        <span class="text-xs text-gray-500" id="kcal-perc">--% raggiunto</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="proteine">Proteine (g):</label>
+                        <input type="number" id="proteine" placeholder="Es. 150">
+                        <span class="text-xs text-gray-500" id="protein-perc">--% raggiunto</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="carboidrati">Carboidrati (g):</label>
+                        <input type="number" id="carboidrati" placeholder="Es. 220">
+                        <span class="text-xs text-gray-500" id="carbs-perc">--% raggiunto</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="grassi">Grassi (g):</label>
+                        <input type="number" id="grassi" placeholder="Es. 70">
+                        <span class="text-xs text-gray-500" id="fats-perc">--% raggiunto</span>
+                    </div>
+                    <div class="input-group mb-4">
+                        <label for="litri-bevuti">Acqua bevuta (L):</label>
+                        <input type="number" id="litri-bevuti" step="0.1" placeholder="Es. 2.5">
+                        <span class="text-xs text-gray-500" id="water-perc">--% raggiunto</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note Giornaliere -->
+            <div class="input-group mt-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Note Giornaliere</h3>
+                <textarea id="note-personali" rows="4" maxlength="500" class="resize-none" placeholder="Es. Oggi mi sento energico, ho dormito bene, dolore alla schiena migliorato..."></textarea>
+                <span id="caratteri-rimanenti" class="text-xs text-gray-500">Caratteri rimanenti: 500</span>
+            </div>
+
+            <div class="flex justify-between items-center mt-6">
+                <button id="save-daily-btn" class="btn w-full mr-2">Salva Dati del Giorno</button>
+                <button id="reset-form-btn" class="btn w-full ml-2 bg-gray-500 hover:bg-gray-600">Reset Form</button>
+            </div>
         </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-4">
-        <div class="input-group">
-          <label for="dailyCarbsGoal">Obiettivo Carboidrati (g):</label>
-          <input type="number" id="dailyCarbsGoal" placeholder="Es. 220" min="10">
+
+        <!-- Riepilogo Settimanale Section -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Riepilogo Settimanale</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="input-group">
+                    <label for="cm-vita">Vita (cm):</label>
+                    <input type="number" id="cm-vita" step="0.1" placeholder="Es. 80.5">
+                </div>
+                 <div class="input-group">
+                    <label for="cm-fianchi">Fianchi (cm):</label>
+                    <input type="number" id="cm-fianchi" step="0.1" placeholder="Es. 95">
+                </div>
+                 <div class="input-group">
+                    <label for="cm-braccio">Braccio (cm):</label>
+                    <input type="number" id="cm-braccio" step="0.1" placeholder="Es. 32">
+                </div>
+                 <div class="input-group">
+                    <label for="cm-coscia">Coscia (cm):</label>
+                    <input type="number" id="cm-coscia" step="0.1" placeholder="Es. 55">
+                </div>
+                 <div class="input-group">
+                    <label for="kcal-basale">Metabolismo Basale (kcal):</label>
+                    <input type="number" id="kcal-basale" placeholder="Es. 1600">
+                </div>
+                 <div class="input-group">
+                    <label for="bpm-riposo">Frequenza Cardiaca a Riposo (bpm):</label>
+                    <input type="number" id="bpm-riposo" placeholder="Es. 65">
+                </div>
+            </div>
+            <button id="save-weekly-btn" class="btn w-full mt-6">Salva Riepilogo Settimanale</button>
         </div>
-        <div class="input-group">
-          <label for="dailyFatsGoal">Obiettivo Grassi (g):</label>
-          <input type="number" id="dailyFatsGoal" placeholder="Es. 70" min="10">
+
+        <!-- Trend Charts Section -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Grafici di Tendenza</h2>
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Peso, Massa Grassa e Massa Magra</h3>
+                    <canvas id="weight-chart"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Dieta e Obiettivi</h3>
+                    <canvas id="diet-chart"></canvas>
+                </div>
+            </div>
         </div>
-      </div>
-      <button id="save-settings-btn" class="btn w-full mt-6">Salva Impostazioni</button>
+
+        <!-- Storico Dati -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Storico Dati</h2>
+            <p id="loading-history" class="text-gray-500">Caricamento dati...</p>
+            <div id="history-container" class="mt-4">
+                <!-- Dati storici verranno inseriti qui -->
+            </div>
+        </div>
+
     </div>
 
-    <!-- Obiettivi e Progressi -->
-    <div class="card">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">Obiettivi e Progressi</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="input-group">
-          <label>Aderenza settimanale peso (-0.5kg/settimana):</label>
-          <span id="weekly-adherence" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
-        </div>
-        <div class="input-group">
-          <label>Raggiungimento obiettivo totale (-7kg):</label>
-          <span id="total-progress" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
-        </div>
-      </div>
-      <button id="get-summary-btn" class="btn w-full mt-6 flex items-center justify-center">Ottieni un'Analisi Personalizzata ✨</button>
-    </div>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, addDoc, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import Chart from 'https://cdn.jsdelivr.net/npm/chart.js';
 
-    <!-- Analisi AI (locale) -->
-    <div class="card hidden" id="ai-summary-card">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">La tua Analisi ✨</h2>
-      <div id="ai-summary-content" class="text-gray-600 text-base leading-relaxed"></div>
-    </div>
+        // Variabili globali fornite dall'ambiente, con fallback per l'uso locale
+        const appId = 'your-app-id';
+        const firebaseConfig = {
+            apiKey: "your-api-key",
+            authDomain: "your-auth-domain",
+            projectId: "your-project-id",
+            storageBucket: "your-storage-bucket",
+            messagingSenderId: "your-messaging-sender-id",
+            appId: "your-app-id"
+        };
+        const initialAuthToken = null;
 
-    <!-- Dati Giornalieri -->
-    <div class="card" data-scope="daily">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">Dati Giornalieri</h2>
-      <div class="mb-4">
-        <label for="date-picker" class="block text-sm font-medium text-gray-700 mb-1">Seleziona Data:</label>
-        <input type="date" id="date-picker" class="w-full">
-      </div>
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let userHeight = null;
+        let initialWeight = null;
+        let dailyWaterGoal = null;
+        let dailyCaloriesGoal = null;
+        let dailyProteinGoal = null;
+        let dailyCarbsGoal = null;
+        let dailyFatsGoal = null;
 
-      <div class="grid md:grid-cols-3 gap-6">
-        <!-- Composizione Corporea -->
-        <div class="col-span-1 md:border-r border-gray-200 md:pr-6">
-          <h3 class="text-xl font-semibold text-gray-700 mb-3">Composizione Corporea</h3>
-          <div class="input-group mb-4">
-            <label for="peso">Peso (kg):</label>
-            <input type="number" id="peso" step="0.1" placeholder="Es. 75.5" min="20" max="400">
-          </div>
-          <div class="input-group mb-4">
-            <label>BMI/IMC:</label>
-            <span id="bmi" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="massa-grassa-perc">Massa Grassa (%):</label>
-            <input type="number" id="massa-grassa-perc" step="0.1" placeholder="Es. 15.2" min="0" max="100">
-          </div>
-          <div class="input-group mb-4">
-            <label>Massa Grassa (kg):</label>
-            <span id="massa-grassa-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="massa-magra-perc">Massa Magra (%):</label>
-            <input type="number" id="massa-magra-perc" step="0.1" placeholder="Es. 80.5" min="0" max="100">
-          </div>
-          <div class="input-group mb-4">
-            <label>Massa Magra (kg):</label>
-            <span id="massa-magra-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="massa-ossea-perc">Massa Ossea (%):</label>
-            <input type="number" id="massa-ossea-perc" step="0.1" placeholder="Es. 4.3" min="0" max="100">
-          </div>
-          <div class="input-group mb-4">
-            <label>Massa Ossea (kg):</label>
-            <span id="massa-ossea-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="massa-acqua-perc">Massa Acqua (%):</label>
-            <input type="number" id="massa-acqua-perc" step="0.1" placeholder="Es. 55.7" min="0" max="100">
-          </div>
-          <div class="input-group mb-4">
-            <label>Massa Acqua (kg):</label>
-            <span id="massa-acqua-kg" class="block w-full text-center py-2 px-3 bg-gray-100 text-gray-600 rounded-md">--</span>
-          </div>
-        </div>
+        // Total goal: -7kg by Dec 21, 2025
+        const targetWeightLoss = 7;
+        const targetDate = new Date('2025-12-21');
+        const weeklyWeightLossTarget = 0.5;
 
-        <!-- Allenamento -->
-        <div class="col-span-1 md:border-r border-gray-200 md:pr-6">
-          <h3 class="text-xl font-semibold text-gray-700 mb-3">Allenamento</h3>
-          <div class="input-group mb-4">
-            <label for="esercizio-tipo">Tipo di esercizio:</label>
-            <select id="esercizio-tipo" class="w-full">
-              <option value="">Seleziona...</option>
-              <option value="Biking">Biking</option>
-              <option value="Running">Running</option>
-              <option value="HIIT">HIIT</option>
-              <option value="Riposo">Riposo</option>
-              <option value="Corpo Libero">Corpo Libero</option>
-              <option value="Camminata">Camminata</option>
-            </select>
-          </div>
-          <div class="input-group mb-4">
-            <label for="esercizio-tempo">Tempo (min):</label>
-            <input type="number" id="esercizio-tempo" placeholder="Es. 30" min="0" max="600">
-          </div>
-          <div class="input-group mb-4">
-            <label for="intensita-percepita">Intensità percepita (1-10):</label>
-            <input type="number" id="intensita-percepita" min="1" max="10" placeholder="Es. 7">
-          </div>
-          <div class="input-group mb-4">
-            <label for="esercizio-quantita">Dettagli specifici:</label>
-            <textarea id="esercizio-quantita" rows="2" placeholder="Es. 5 km, 15 push-up, 3 giri"></textarea>
-          </div>
-          <div class="input-group flex items-center mb-4">
-            <input type="checkbox" id="creatina" class="h-5 w-5 rounded-md text-indigo-600 focus:ring-indigo-500">
-            <label for="creatina" class="ml-2 font-semibold text-sm">Ho preso la creatina</label>
-          </div>
-        </div>
+        let selectedDate = new Date().toISOString().slice(0, 10);
+        document.getElementById('date-picker').value = selectedDate;
 
-        <!-- Nutrizione - Obiettivi -->
-        <div class="col-span-1">
-          <h3 class="text-xl font-semibold text-gray-700 mb-3">Nutrizione - Obiettivi</h3>
-          <div class="input-group mb-4">
-            <label for="calorie">Calorie totali (kcal):</label>
-            <input type="number" id="calorie" placeholder="Es. 2000" min="0">
-            <span class="text-xs text-gray-500" id="kcal-perc">--% raggiunto</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="proteine">Proteine (g):</label>
-            <input type="number" id="proteine" placeholder="Es. 150" min="0">
-            <span class="text-xs text-gray-500" id="protein-perc">--% raggiunto</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="carboidrati">Carboidrati (g):</label>
-            <input type="number" id="carboidrati" placeholder="Es. 220" min="0">
-            <span class="text-xs text-gray-500" id="carbs-perc">--% raggiunto</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="grassi">Grassi (g):</label>
-            <input type="number" id="grassi" placeholder="Es. 70" min="0">
-            <span class="text-xs text-gray-500" id="fats-perc">--% raggiunto</span>
-          </div>
-          <div class="input-group mb-4">
-            <label for="litri-bevuti">Acqua bevuta (L):</label>
-            <input type="number" id="litri-bevuti" step="0.1" placeholder="Es. 2.5" min="0">
-            <span class="text-xs text-gray-500" id="water-perc">--% raggiunto</span>
-          </div>
-        </div>
-      </div>
+        const datePicker = document.getElementById('date-picker');
+        const saveDailyBtn = document.getElementById('save-daily-btn');
+        const saveWeeklyBtn = document.getElementById('save-weekly-btn');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const resetFormBtn = document.getElementById('reset-form-btn');
+        const userIdDisplay = document.getElementById('user-id');
+        const loadingHistory = document.getElementById('loading-history');
+        const historyContainer = document.getElementById('history-container');
+        const messageBox = document.getElementById('message-box');
+        const getSummaryBtn = document.getElementById('get-summary-btn');
+        const aiSummaryCard = document.getElementById('ai-summary-card');
+        const aiSummaryContent = document.getElementById('ai-summary-content');
+        
+        const altezzaInput = document.getElementById('altezza');
+        const pesoInput = document.getElementById('peso');
+        const bmiSpan = document.getElementById('bmi');
+        const massaGrassaPercInput = document.getElementById('massa-grassa-perc');
+        const massaGrassaKgSpan = document.getElementById('massa-grassa-kg');
+        const massaMagraPercInput = document.getElementById('massa-magra-perc');
+        const massaMagraKgSpan = document.getElementById('massa-magra-kg');
+        const massaOsseaPercInput = document.getElementById('massa-ossea-perc');
+        const massaOsseaKgSpan = document.getElementById('massa-ossea-kg');
+        const massaAcquaPercInput = document.getElementById('massa-acqua-perc');
+        const massaAcquaKgSpan = document.getElementById('massa-acqua-kg');
 
-      <!-- Note Giornaliere -->
-      <div class="input-group mt-6">
-        <h3 class="text-xl font-semibold text-gray-700 mb-3">Note Giornaliere</h3>
-        <textarea id="note-personali" rows="4" maxlength="500" class="resize-none" placeholder="Es. Oggi mi sento energico, ho dormito bene, dolore alla schiena migliorato..."></textarea>
-        <span id="caratteri-rimanenti" class="text-xs text-gray-500">Caratteri rimanenti: 500</span>
-      </div>
+        const dailyWaterGoalInput = document.getElementById('dailyWaterGoal');
+        const dailyCaloriesGoalInput = document.getElementById('dailyCaloriesGoal');
+        const dailyProteinGoalInput = document.getElementById('dailyProteinGoal');
+        const dailyCarbsGoalInput = document.getElementById('dailyCarbsGoal');
+        const dailyFatsGoalInput = document.getElementById('dailyFatsGoal');
+        const weeklyAdherenceSpan = document.getElementById('weekly-adherence');
+        const totalProgressSpan = document.getElementById('total-progress');
 
-      <div class="flex flex-col md:flex-row gap-3 items-center mt-6">
-        <button id="save-daily-btn" class="btn w-full">Salva Dati del Giorno</button>
-        <button id="reset-form-btn" class="btn w-full bg-gray-500 hover:bg-gray-600">Reset Form Giornaliero</button>
-      </div>
-    </div>
+        const notePersonaliTextarea = document.getElementById('note-personali');
+        const caratteriRimanentiSpan = document.getElementById('caratteri-rimanenti');
+        const intensitaPercepitaInput = document.getElementById('intensita-percepita');
+        const kcalPercSpan = document.getElementById('kcal-perc');
+        const proteinPercSpan = document.getElementById('protein-perc');
+        const carbsPercSpan = document.getElementById('carbs-perc');
+        const fatsPercSpan = document.getElementById('fats-perc');
+        const waterPercSpan = document.getElementById('water-perc');
 
-    <!-- Riepilogo Settimanale -->
-    <div class="card">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">Riepilogo Settimanale</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="input-group">
-          <label for="cm-vita">Vita (cm):</label>
-          <input type="number" id="cm-vita" step="0.1" placeholder="Es. 80.5" min="20" max="200">
-        </div>
-        <div class="input-group">
-          <label for="cm-fianchi">Fianchi (cm):</label>
-          <input type="number" id="cm-fianchi" step="0.1" placeholder="Es. 95" min="20" max="200">
-        </div>
-        <div class="input-group">
-          <label for="cm-braccio">Braccio (cm):</label>
-          <input type="number" id="cm-braccio" step="0.1" placeholder="Es. 32" min="10" max="80">
-        </div>
-        <div class="input-group">
-          <label for="cm-coscia">Coscia (cm):</label>
-          <input type="number" id="cm-coscia" step="0.1" placeholder="Es. 55" min="20" max="100">
-        </div>
-        <div class="input-group">
-          <label for="kcal-basale">Metabolismo Basale (kcal):</label>
-          <input type="number" id="kcal-basale" placeholder="Es. 1600" min="500" max="4000">
-        </div>
-        <div class="input-group">
-          <label for="bpm-riposo">Frequenza Cardiaca a Riposo (bpm):</label>
-          <input type="number" id="bpm-riposo" placeholder="Es. 65" min="30" max="200">
-        </div>
-      </div>
-      <button id="save-weekly-btn" class="btn w-full mt-6">Salva Riepilogo Settimanale</button>
-    </div>
+        let weightChart, dietChart;
 
-    <!-- Grafici di Tendenza -->
-    <div class="card">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">Grafici di Tendenza</h2>
-      <div class="space-y-8">
-        <div>
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">Peso, Massa Grassa e Massa Magra</h3>
-          <canvas id="weight-chart"></canvas>
-        </div>
-        <div>
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">Dieta e Obiettivi</h3>
-          <canvas id="diet-chart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Storico Dati -->
-    <div class="card">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">Storico Dati</h2>
-      <p id="loading-history" class="text-gray-500">Caricamento dati...</p>
-      <div id="history-container" class="mt-4"></div>
-    </div>
-  </div>
-
-  <!-- Chart.js (ESM, auto-registered) -->
-  <script type="module">
-    import Chart from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/auto';
-
-    // ======= Demo/local storage layer =======
-    const appId = 'demo-app';
-    // crea un uid demo e persistilo
-    const uidKey = `${appId}:uid`;
-    let userId = localStorage.getItem(uidKey) || `user_${Math.random().toString(36).slice(2,10)}`;
-    localStorage.setItem(uidKey, userId);
-
-    const ns = (path) => `${appId}:${userId}:${path}`;
-    const store = {
-      get: (path, fallback=null) => {
-        try { const v = localStorage.getItem(ns(path)); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
-      },
-      set: (path, value) => localStorage.setItem(ns(path), JSON.stringify(value))
-    };
-
-    // ======= DOM refs =======
-    const messageBox = document.getElementById('message-box');
-    const userIdDisplay = document.getElementById('user-id');
-    const datePicker = document.getElementById('date-picker');
-    const loadingHistory = document.getElementById('loading-history');
-    const historyContainer = document.getElementById('history-container');
-
-    const altezzaInput = document.getElementById('altezza');
-    const pesoInput = document.getElementById('peso');
-    const bmiSpan = document.getElementById('bmi');
-    const massaGrassaPercInput = document.getElementById('massa-grassa-perc');
-    const massaGrassaKgSpan = document.getElementById('massa-grassa-kg');
-    const massaMagraPercInput = document.getElementById('massa-magra-perc');
-    const massaMagraKgSpan = document.getElementById('massa-magra-kg');
-    const massaOsseaPercInput = document.getElementById('massa-ossea-perc');
-    const massaOsseaKgSpan = document.getElementById('massa-ossea-kg');
-    const massaAcquaPercInput = document.getElementById('massa-acqua-perc');
-    const massaAcquaKgSpan = document.getElementById('massa-acqua-kg');
-
-    const dailyWaterGoalInput = document.getElementById('dailyWaterGoal');
-    const dailyCaloriesGoalInput = document.getElementById('dailyCaloriesGoal');
-    const dailyProteinGoalInput = document.getElementById('dailyProteinGoal');
-    const dailyCarbsGoalInput = document.getElementById('dailyCarbsGoal');
-    const dailyFatsGoalInput = document.getElementById('dailyFatsGoal');
-
-    const weeklyAdherenceSpan = document.getElementById('weekly-adherence');
-    const totalProgressSpan = document.getElementById('total-progress');
-
-    const notePersonaliTextarea = document.getElementById('note-personali');
-    const caratteriRimanentiSpan = document.getElementById('caratteri-rimanenti');
-    const intensitaPercepitaInput = document.getElementById('intensita-percepita');
-
-    const kcalPercSpan = document.getElementById('kcal-perc');
-    const proteinPercSpan = document.getElementById('protein-perc');
-    const carbsPercSpan = document.getElementById('carbs-perc');
-    const fatsPercSpan = document.getElementById('fats-perc');
-    const waterPercSpan = document.getElementById('water-perc');
-
-    const saveSettingsBtn = document.getElementById('save-settings-btn');
-    const saveDailyBtn = document.getElementById('save-daily-btn');
-    const resetFormBtn = document.getElementById('reset-form-btn');
-    const saveWeeklyBtn = document.getElementById('save-weekly-btn');
-    const getSummaryBtn = document.getElementById('get-summary-btn');
-    const aiSummaryCard = document.getElementById('ai-summary-card');
-    const aiSummaryContent = document.getElementById('ai-summary-content');
-
-    let weightChart, dietChart;
-
-    // ======= Config e stato =======
-    const targetWeightLoss = 7; // kg
-    const targetDate = new Date('2025-12-21');
-    const weeklyWeightLossTarget = 0.5; // kg
-
-    let selectedDate = new Date().toISOString().slice(0,10);
-    datePicker.value = selectedDate;
-
-    const state = {
-      initialWeight: store.get('settings.initialWeight', null),
-      altezza: store.get('settings.altezza', null),
-      goals: store.get('settings.goals', { water: null, calories: null, protein: null, carbs: null, fats: null })
-    };
-
-    // ======= UI helpers =======
-    function showMessage(message, isError=false){
-      messageBox.textContent = message;
-      messageBox.classList.toggle('error', !!isError);
-      messageBox.classList.add('show');
-      setTimeout(()=>messageBox.classList.remove('show'), 2500);
-    }
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
-    function updateGoalPercentages() {
-      const calorie = parseInt(document.getElementById('calorie').value) || 0;
-      const proteine = parseInt(document.getElementById('proteine').value) || 0;
-      const carboidrati = parseInt(document.getElementById('carboidrati').value) || 0;
-      const grassi = parseInt(document.getElementById('grassi').value) || 0;
-      const litriBevuti = parseFloat(document.getElementById('litri-bevuti').value) || 0;
-      const g = state.goals;
-      kcalPercSpan.textContent   = g.calories ? `${((calorie   / g.calories) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
-      proteinPercSpan.textContent= g.protein  ? `${((proteine  / g.protein ) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
-      carbsPercSpan.textContent  = g.carbs    ? `${((carboidrati/ g.carbs   ) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
-      fatsPercSpan.textContent   = g.fats     ? `${((grassi    / g.fats    ) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
-      waterPercSpan.textContent  = g.water    ? `${((litriBevuti/ g.water  ) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
-    }
-
-    function updateCalculations(){
-      const peso = parseFloat(pesoInput.value);
-      const altezza = state.altezza || parseFloat(altezzaInput.value);
-
-      const perc = (el) => {
-        const v = parseFloat(el.value);
-        return Number.isFinite(v) ? clamp(v, 0, 100) : null;
-      };
-      const massaGrassaPerc = perc(massaGrassaPercInput);
-      const massaMagraPerc = perc(massaMagraPercInput);
-      const massaOsseaPerc = perc(massaOsseaPercInput);
-      const massaAcquaPerc = perc(massaAcquaPercInput);
-
-      if (peso > 0 && altezza > 0) {
-        const h = altezza/100;
-        bmiSpan.textContent = (peso/(h*h)).toFixed(2);
-      } else { bmiSpan.textContent = '--'; }
-
-      const kg = (p) => (peso>0 && p!=null) ? (peso*p/100).toFixed(2) : '--';
-      massaGrassaKgSpan.textContent = kg(massaGrassaPerc);
-      massaMagraKgSpan.textContent = kg(massaMagraPerc);
-      massaOsseaKgSpan.textContent = kg(massaOsseaPerc);
-      massaAcquaKgSpan.textContent = kg(massaAcquaPerc);
-
-      updateGoalPercentages();
-    }
-
-    pesoInput.addEventListener('input', updateCalculations);
-    massaGrassaPercInput.addEventListener('input', updateCalculations);
-    massaMagraPercInput.addEventListener('input', updateCalculations);
-    massaOsseaPercInput.addEventListener('input', updateCalculations);
-    massaAcquaPercInput.addEventListener('input', updateCalculations);
-    document.getElementById('calorie').addEventListener('input', updateGoalPercentages);
-    document.getElementById('proteine').addEventListener('input', updateGoalPercentages);
-    document.getElementById('carboidrati').addEventListener('input', updateGoalPercentages);
-    document.getElementById('grassi').addEventListener('input', updateGoalPercentages);
-    document.getElementById('litri-bevuti').addEventListener('input', updateGoalPercentages);
-
-    resetFormBtn.addEventListener('click', ()=>{
-      document.querySelectorAll('[data-scope="daily"] input, [data-scope="daily"] textarea, [data-scope="daily"] select').forEach(input=>{
-        if (input.type === 'checkbox') input.checked = false; else input.value = '';
-      });
-      updateCalculations();
-      showMessage('Form giornaliero resettato!');
-    });
-
-    notePersonaliTextarea.addEventListener('input', ()=>{
-      const maxLength=500; const len = notePersonaliTextarea.value.length;
-      caratteriRimanentiSpan.textContent = `Caratteri rimanenti: ${maxLength-len}`;
-    });
-
-    function getDaily(date){ return store.get(`daily.${date}`, null); }
-    function setDaily(date, data){ store.set(`daily.${date}`, data); }
-    function getAllDaily(){
-      const prefix = ns('');
-      const out=[];
-      for (let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if (k && k.startsWith(prefix+`daily.`)){
-          const date = k.split('.').pop();
-          const v = store.get(`daily.${date}`, null);
-          if (v) out.push(v);
+        // Funzione per mostrare un messaggio temporaneo
+        function showMessage(message, isError = false) {
+            messageBox.textContent = message;
+            if (isError) {
+                messageBox.classList.add('error');
+            } else {
+                messageBox.classList.remove('error');
+            }
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
         }
-      }
-      return out;
-    }
 
-    function renderHistory(data){
-      if (!data.length){
-        loadingHistory.style.display='none';
-        historyContainer.innerHTML = '<p class="text-gray-500">Nessun dato storico. Salva i tuoi progressi!</p>';
-        return;
-      }
-      loadingHistory.style.display='none';
-      historyContainer.innerHTML='';
+        function updateGoalPercentages() {
+            const calorie = parseInt(document.getElementById('calorie').value) || 0;
+            const proteine = parseInt(document.getElementById('proteine').value) || 0;
+            const carboidrati = parseInt(document.getElementById('carboidrati').value) || 0;
+            const grassi = parseInt(document.getElementById('grassi').value) || 0;
+            const litriBevuti = parseFloat(document.getElementById('litri-bevuti').value) || 0;
+            
+            kcalPercSpan.textContent = dailyCaloriesGoal ? `${((calorie / dailyCaloriesGoal) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
+            proteinPercSpan.textContent = dailyProteinGoal ? `${((proteine / dailyProteinGoal) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
+            carbsPercSpan.textContent = dailyCarbsGoal ? `${((carboidrati / dailyCarbsGoal) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
+            fatsPercSpan.textContent = dailyFatsGoal ? `${((grassi / dailyFatsGoal) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
+            waterPercSpan.textContent = dailyWaterGoal ? `${((litriBevuti / dailyWaterGoal) * 100).toFixed(1)}% raggiunto` : '--% raggiunto';
+        }
+        
+        // Funzione per calcolare BMI e masse in kg
+        function updateCalculations() {
+            const peso = parseFloat(pesoInput.value);
+            const altezza = userHeight; // Usa l'altezza salvata
+            const massaGrassaPerc = parseFloat(massaGrassaPercInput.value);
+            const massaMagraPerc = parseFloat(massaMagraPercInput.value);
+            const massaOsseaPerc = parseFloat(massaOsseaPercInput.value);
+            const massaAcquaPerc = parseFloat(massaAcquaPercInput.value);
 
-      const g = state.goals;
-      data.forEach(item=>{
-        const dieta = item.dieta || {}; const esercizio = item.esercizio || {};
-        const mg = item.massaGrassa || {}; const mm = item.massaMagra || {}; const mo = item.massaOssea || {}; const ma = item.massaAcqua || {};
-        const waterPerc = g.water ? (dieta.litriBevuti||0)/g.water*100 : '--';
-        const kcalPerc = g.calories ? (dieta.calorie||0)/g.calories*100 : '--';
-        const proteinPerc = g.protein ? (dieta.proteine||0)/g.protein*100 : '--';
-        const carbsPerc = g.carbs ? (dieta.carboidrati||0)/g.carbs*100 : '--';
-        const fatsPerc = g.fats ? (dieta.grassi||0)/g.fats*100 : '--';
+            // Calcolo BMI
+            if (peso > 0 && altezza > 0) {
+                const altezzaM = altezza / 100;
+                const bmi = peso / (altezzaM * altezzaM);
+                bmiSpan.textContent = bmi.toFixed(2);
+            } else {
+                bmiSpan.textContent = "--";
+            }
 
-        const div = document.createElement('div');
-        div.className='card bg-gray-50 p-4 mb-4';
-        div.innerHTML = `
-          <h4 class="text-lg font-semibold text-gray-800 mb-2">Dati del ${item.data}</h4>
-          <ul class="text-sm text-gray-600 space-y-1">
-            <li><strong>Peso:</strong> ${item.peso!=null? item.peso+' kg':'--'}</li>
-            <li><strong>BMI:</strong> ${(state.altezza && item.peso!=null)? (item.peso/((state.altezza/100)**2)).toFixed(2):'--'}</li>
-            <li><strong>Massa Grassa:</strong> ${mg.perc!=null? `${mg.perc}% / ${mg.kg!=null? mg.kg+' kg':'--'}`:'--'}</li>
-            <li><strong>Massa Magra:</strong> ${mm.perc!=null? `${mm.perc}% / ${mm.kg!=null? mm.kg+' kg':'--'}`:'--'}</li>
-            <li><strong>Massa Ossea:</strong> ${mo.perc!=null? `${mo.perc}% / ${mo.kg!=null? mo.kg+' kg':'--'}`:'--'}</li>
-            <li><strong>Massa Acqua:</strong> ${ma.perc!=null? `${ma.perc}% / ${ma.kg!=null? ma.kg+' kg':'--'}`:'--'}</li>
-            <li><strong>Esercizio:</strong> ${esercizio.tipo || '--'} (${esercizio.tempo!=null? esercizio.tempo+' min':'--'}, ${esercizio.quantita || '--'})</li>
-            <li><strong>Intensità Percepita:</strong> ${esercizio.intensita || '--'}</li>
-            <li><strong>Calorie:</strong> ${dieta.calorie!=null? dieta.calorie+' kcal':'--'}</li>
-            <li><strong>Macro:</strong> G: ${dieta.grassi!=null? dieta.grassi+'g':'--'}, P: ${dieta.proteine!=null? dieta.proteine+'g':'--'}, C: ${dieta.carboidrati!=null? dieta.carboidrati+'g':'--'}</li>
-            <li><strong>Litri Bevuti:</strong> ${dieta.litriBevuti!=null? dieta.litriBevuti+'L':'--'}</li>
-            <li><strong>Creatina:</strong> ${item.creatina? 'Sì':'No'}</li>
-            <hr class="my-2 border-gray-300">
-            <li><strong>Obiettivo Acqua:</strong> ${waterPerc==='--'?'--':waterPerc.toFixed(1)+'%'}</li>
-            <li><strong>Obiettivo Calorie:</strong> ${kcalPerc==='--'?'--':kcalPerc.toFixed(1)+'%'}</li>
-            <li><strong>Obiettivo Proteine:</strong> ${proteinPerc==='--'?'--':proteinPerc.toFixed(1)+'%'}</li>
-            <li><strong>Obiettivo Carboidrati:</strong> ${carbsPerc==='--'?'--':carbsPerc.toFixed(1)+'%'}</li>
-            <li><strong>Obiettivo Grassi:</strong> ${fatsPerc==='--'?'--':fatsPerc.toFixed(1)+'%'}</li>
-          </ul>`;
-        historyContainer.appendChild(div);
-      });
-    }
+            // Calcolo masse in kg
+            if (peso > 0) {
+                massaGrassaKgSpan.textContent = massaGrassaPerc ? (peso * massaGrassaPerc / 100).toFixed(2) : '--';
+                massaMagraKgSpan.textContent = massaMagraPerc ? (peso * massaMagraPerc / 100).toFixed(2) : '--';
+                massaOsseaKgSpan.textContent = massaOsseaPerc ? (peso * massaOsseaPerc / 100).toFixed(2) : '--';
+                massaAcquaKgSpan.textContent = massaAcquaPerc ? (peso * massaAcquaPerc / 100).toFixed(2) : '--';
+            } else {
+                massaGrassaKgSpan.textContent = massaMagraKgSpan.textContent = massaOsseaKgSpan.textContent = massaAcquaKgSpan.textContent = '--';
+            }
+            updateGoalPercentages();
+        }
+        
+        // Listener per gli input che influenzano i calcoli
+        pesoInput.addEventListener('input', updateCalculations);
+        massaGrassaPercInput.addEventListener('input', updateCalculations);
+        massaMagraPercInput.addEventListener('input', updateCalculations);
+        massaOsseaPercInput.addEventListener('input', updateCalculations);
+        massaAcquaPercInput.addEventListener('input', updateCalculations);
+        document.getElementById('calorie').addEventListener('input', updateGoalPercentages);
+        document.getElementById('proteine').addEventListener('input', updateGoalPercentages);
+        document.getElementById('carboidrati').addEventListener('input', updateGoalPercentages);
+        document.getElementById('grassi').addEventListener('input', updateGoalPercentages);
+        document.getElementById('litri-bevuti').addEventListener('input', updateGoalPercentages);
 
-    function calcWeeklyAdherence(history){
-      const byDate = history.filter(d=>d.peso!=null).sort((a,b)=>new Date(a.data)-new Date(b.data));
-      if (byDate.length < 2) return '--';
-      const last = byDate[byDate.length-1];
-      const weekAgo = new Date(new Date(last.data).getTime() - 7*86400000);
-      const weekBaseline = [...byDate].reverse().find(d=> new Date(d.data) <= weekAgo) || byDate[0];
-      const delta = weekBaseline.peso - last.peso; // perdita positiva
-      const adherence = clamp((delta/weeklyWeightLossTarget)*100, 0, 100);
-      return `${adherence.toFixed(1)}%`;
-    }
-
-    function updateOverallProgress(history){
-      if (!history.length || state.initialWeight == null){
-        weeklyAdherenceSpan.textContent='--';
-        totalProgressSpan.textContent='--';
-        return;
-      }
-      const sorted = history.filter(d=>d.peso!=null).sort((a,b)=>new Date(a.data)-new Date(b.data));
-      if (!sorted.length){ weeklyAdherenceSpan.textContent='--'; totalProgressSpan.textContent='--'; return; }
-      const currentWeight = sorted[sorted.length-1].peso;
-      const totalProgress = ((state.initialWeight - currentWeight) / targetWeightLoss) * 100;
-      totalProgressSpan.textContent = `${clamp(totalProgress,0,100).toFixed(1)}%`;
-      weeklyAdherenceSpan.textContent = calcWeeklyAdherence(sorted);
-    }
-
-    function updateCharts(data){
-      if (!data.length) return;
-      const sorted = [...data].sort((a,b)=>new Date(a.data)-new Date(b.data));
-      const labels = sorted.map(i=>i.data);
-      const weightData = sorted.map(i=>i.peso!=null? i.peso : null);
-      const massaGrassaData = sorted.map(i=> (i.massaGrassa||{}).perc ?? null);
-      const massaMagraData = sorted.map(i=> (i.massaMagra||{}).perc ?? null);
-      const calorieData = sorted.map(i=> (i.dieta||{}).calorie ?? null);
-      const proteinData = sorted.map(i=> (i.dieta||{}).proteine ?? null);
-      const carbsData = sorted.map(i=> (i.dieta||{}).carboidrati ?? null);
-      const fatsData = sorted.map(i=> (i.dieta||{}).grassi ?? null);
-      const waterData = sorted.map(i=> (i.dieta||{}).litriBevuti ?? null);
-
-      const weightCtx = document.getElementById('weight-chart').getContext('2d');
-      if (weightChart) weightChart.destroy();
-      weightChart = new Chart(weightCtx, {
-        type:'line',
-        data:{ labels, datasets:[
-          { label:'Peso (kg)', data: weightData, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.2)', fill:true, tension:.2 },
-          { label:'Massa Grassa (%)', data: massaGrassaData, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.2)', fill:true, tension:.2 },
-          { label:'Massa Magra (%)', data: massaMagraData, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.2)', fill:true, tension:.2 },
-        ]},
-        options:{ responsive:true, scales:{ y:{ beginAtZero:false } } }
-      });
-
-      const dietCtx = document.getElementById('diet-chart').getContext('2d');
-      if (dietChart) dietChart.destroy();
-      dietChart = new Chart(dietCtx, {
-        type:'line',
-        data:{ labels, datasets:[
-          { label:'Calorie (kcal)', data: calorieData, borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.2)', fill:false, tension:.2 },
-          { label:'Proteine (g)', data: proteinData, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.2)', fill:false, tension:.2 },
-          { label:'Carboidrati (g)', data: carbsData, borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,.2)', fill:false, tension:.2 },
-          { label:'Grassi (g)', data: fatsData, borderColor:'#d946ef', backgroundColor:'rgba(217,70,239,.2)', fill:false, tension:.2 },
-          { label:'Acqua (L)', data: waterData, borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,.2)', fill:false, tension:.2 },
-        ]},
-        options:{ responsive:true, scales:{ y:{ beginAtZero:false } } }
-      });
-    }
-
-    async function fetchDailyDataForDate(date){
-      const d = getDaily(date);
-      if (d){
-        document.getElementById('peso').value = d.peso ?? '';
-        document.getElementById('creatina').checked = !!d.creatina;
-        document.getElementById('massa-grassa-perc').value = (d.massaGrassa||{}).perc ?? '';
-        document.getElementById('massa-magra-perc').value = (d.massaMagra||{}).perc ?? '';
-        document.getElementById('massa-ossea-perc').value = (d.massaOssea||{}).perc ?? '';
-        document.getElementById('massa-acqua-perc').value = (d.massaAcqua||{}).perc ?? '';
-        document.getElementById('esercizio-tipo').value = (d.esercizio||{}).tipo ?? '';
-        document.getElementById('esercizio-tempo').value = (d.esercizio||{}).tempo ?? '';
-        intensitaPercepitaInput.value = (d.esercizio||{}).intensita ?? '';
-        document.getElementById('esercizio-quantita').value = (d.esercizio||{}).quantita ?? '';
-        document.getElementById('calorie').value = (d.dieta||{}).calorie ?? '';
-        document.getElementById('grassi').value = (d.dieta||{}).grassi ?? '';
-        document.getElementById('proteine').value = (d.dieta||{}).proteine ?? '';
-        document.getElementById('carboidrati').value = (d.dieta||{}).carboidrati ?? '';
-        document.getElementById('litri-bevuti').value = (d.dieta||{}).litriBevuti ?? '';
-        notePersonaliTextarea.value = d.notePersonali ?? '';
-        caratteriRimanentiSpan.textContent = `Caratteri rimanenti: ${500 - notePersonaliTextarea.value.length}`;
-      } else {
-        document.querySelectorAll('[data-scope="daily"] input, [data-scope="daily"] textarea, [data-scope="daily"] select').forEach(input=>{
-          if (input.type === 'checkbox') input.checked = false; else input.value = '';
+        // Funzione per resettare il form
+        resetFormBtn.addEventListener('click', () => {
+             document.querySelectorAll('.card input, .card textarea, .card select').forEach(input => {
+                if (input.type === 'checkbox') input.checked = false;
+                else input.value = '';
+            });
+            updateCalculations();
+            showMessage("Form resettato!");
         });
-        caratteriRimanentiSpan.textContent = 'Caratteri rimanenti: 500';
-      }
-      updateCalculations();
-    }
+        
+        // Funzione per aggiornare il conteggio caratteri delle note
+        notePersonaliTextarea.addEventListener('input', () => {
+            const maxLength = 500;
+            const currentLength = notePersonaliTextarea.value.length;
+            caratteriRimanentiSpan.textContent = `Caratteri rimanenti: ${maxLength - currentLength}`;
+        });
 
-    datePicker.addEventListener('change', (e)=>{ selectedDate = e.target.value; fetchDailyDataForDate(selectedDate); });
+        // Funzione per recuperare i dati giornalieri per una data specifica
+        async function fetchDailyDataForDate(date) {
+            if (!auth.currentUser) return;
+            try {
+                const docRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/dailyEntries`, date);
+                const docSnap = await getDoc(docRef);
 
-    saveDailyBtn.addEventListener('click', ()=>{
-      const daily = {
-        data: selectedDate,
-        peso: parseFloat(document.getElementById('peso').value) || null,
-        creatina: document.getElementById('creatina').checked,
-        altezza: state.altezza || parseFloat(altezzaInput.value) || null,
-        massaGrassa: {
-          perc: parseFloat(document.getElementById('massa-grassa-perc').value) || null,
-          kg: isFinite(parseFloat(massaGrassaKgSpan.textContent)) ? parseFloat(massaGrassaKgSpan.textContent) : null,
-        },
-        massaMagra: {
-          perc: parseFloat(document.getElementById('massa-magra-perc').value) || null,
-          kg: isFinite(parseFloat(massaMagraKgSpan.textContent)) ? parseFloat(massaMagraKgSpan.textContent) : null,
-        },
-        massaOssea: {
-          perc: parseFloat(document.getElementById('massa-ossea-perc').value) || null,
-          kg: isFinite(parseFloat(massaOsseaKgSpan.textContent)) ? parseFloat(massaOsseaKgSpan.textContent) : null,
-        },
-        massaAcqua: {
-          perc: parseFloat(document.getElementById('massa-acqua-perc').value) || null,
-          kg: isFinite(parseFloat(massaAcquaKgSpan.textContent)) ? parseFloat(massaAcquaKgSpan.textContent) : null,
-        },
-        esercizio: {
-          tipo: document.getElementById('esercizio-tipo').value || null,
-          tempo: parseInt(document.getElementById('esercizio-tempo').value) || null,
-          intensita: parseInt(intensitaPercepitaInput.value) || null,
-          quantita: document.getElementById('esercizio-quantita').value || null,
-        },
-        dieta: {
-          calorie: parseInt(document.getElementById('calorie').value) || null,
-          grassi: parseInt(document.getElementById('grassi').value) || null,
-          proteine: parseInt(document.getElementById('proteine').value) || null,
-          carboidrati: parseInt(document.getElementById('carboidrati').value) || null,
-          litriBevuti: parseFloat(document.getElementById('litri-bevuti').value) || null,
-        },
-        notePersonali: notePersonaliTextarea.value || null,
-      };
-      setDaily(selectedDate, daily);
-      // set initial weight if null and peso present
-      if (state.initialWeight==null && daily.peso!=null){ state.initialWeight = daily.peso; store.set('settings.initialWeight', state.initialWeight); }
-      showMessage('Dati giornalieri salvati!');
-      const all = getAllDaily().sort((a,b)=> new Date(b.data)-new Date(a.data));
-      renderHistory(all);
-      updateOverallProgress(all);
-      updateCharts(all);
-    });
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('peso').value = data.peso || '';
+                    document.getElementById('creatina').checked = data.creatina || false;
+                    document.getElementById('massa-grassa-perc').value = data.massaGrassa.perc || '';
+                    document.getElementById('massa-magra-perc').value = data.massaMagra.perc || '';
+                    document.getElementById('massa-ossea-perc').value = data.massaOssea.perc || '';
+                    document.getElementById('massa-acqua-perc').value = data.massaAcqua.perc || '';
+                    document.getElementById('esercizio-tipo').value = data.esercizio.tipo || '';
+                    document.getElementById('esercizio-tempo').value = data.esercizio.tempo || '';
+                    intensitaPercepitaInput.value = data.esercizio.intensita || '';
+                    document.getElementById('esercizio-quantita').value = data.esercizio.quantita || '';
+                    document.getElementById('calorie').value = data.dieta.calorie || '';
+                    document.getElementById('grassi').value = data.dieta.grassi || '';
+                    document.getElementById('proteine').value = data.dieta.proteine || '';
+                    document.getElementById('carboidrati').value = data.dieta.carboidrati || '';
+                    document.getElementById('litri-bevuti').value = data.dieta.litriBevuti || '';
+                    notePersonaliTextarea.value = data.notePersonali || '';
+                    caratteriRimanentiSpan.textContent = `Caratteri rimanenti: ${500 - notePersonaliTextarea.value.length}`;
+                    
+                    updateCalculations();
+                } else {
+                    // Pulisce il form se non ci sono dati per la data
+                    document.querySelectorAll('.card input, .card textarea, .card select').forEach(input => {
+                        if (input.type === 'checkbox') input.checked = false;
+                        else input.value = '';
+                    });
+                    updateCalculations();
+                }
+            } catch (error) {
+                console.error("Errore nel caricare i dati giornalieri:", error);
+            }
+        }
 
-    saveSettingsBtn.addEventListener('click', ()=>{
-      const a = parseFloat(altezzaInput.value);
-      const water = parseFloat(dailyWaterGoalInput.value);
-      const calories = parseInt(dailyCaloriesGoalInput.value);
-      const protein = parseInt(dailyProteinGoalInput.value);
-      const carbs = parseInt(dailyCarbsGoalInput.value);
-      const fats = parseInt(dailyFatsGoalInput.value);
-      const settings = {};
-      if (Number.isFinite(a) && a>0) { settings.altezza = a; state.altezza = a; }
-      const goals = { ...state.goals };
-      if (Number.isFinite(water) && water>0) goals.water = water;
-      if (Number.isFinite(calories) && calories>0) goals.calories = calories;
-      if (Number.isFinite(protein) && protein>0) goals.protein = protein;
-      if (Number.isFinite(carbs) && carbs>0) goals.carbs = carbs;
-      if (Number.isFinite(fats) && fats>0) goals.fats = fats;
-      state.goals = goals;
-      if (Object.keys(settings).length) store.set('settings.altezza', state.altezza);
-      store.set('settings.goals', state.goals);
-      updateCalculations();
-      showMessage('Impostazioni salvate!');
-    });
+        // Listener per il cambio data
+        datePicker.addEventListener('change', (e) => {
+            selectedDate = e.target.value;
+            fetchDailyDataForDate(selectedDate);
+        });
 
-    saveWeeklyBtn.addEventListener('click', ()=>{
-      const weekly = store.get('weekly', []);
-      weekly.push({
-        data: new Date().toISOString().slice(0,10),
-        misureCorpo: {
-          vita: parseFloat(document.getElementById('cm-vita').value) || null,
-          fianchi: parseFloat(document.getElementById('cm-fianchi').value) || null,
-          braccio: parseFloat(document.getElementById('cm-braccio').value) || null,
-          coscia: parseFloat(document.getElementById('cm-coscia').value) || null,
-        },
-        metabolismoBasale: parseFloat(document.getElementById('kcal-basale').value) || null,
-        frequenzaCardiacaRiposo: parseInt(document.getElementById('bpm-riposo').value) || null,
-      });
-      store.set('weekly', weekly);
-      showMessage('Riepilogo settimanale salvato!');
-    });
+        // Salva i dati giornalieri
+        saveDailyBtn.addEventListener('click', async () => {
+            if (!auth.currentUser) {
+                showMessage("Attendere l'autenticazione.", true);
+                return;
+            }
+            
+            const data = {
+                data: selectedDate,
+                peso: parseFloat(document.getElementById('peso').value) || null,
+                creatina: document.getElementById('creatina').checked,
+                altezza: userHeight,
+                massaGrassa: {
+                    perc: parseFloat(document.getElementById('massa-grassa-perc').value) || null,
+                    kg: parseFloat(massaGrassaKgSpan.textContent) || null
+                },
+                massaMagra: {
+                    perc: parseFloat(document.getElementById('massa-magra-perc').value) || null,
+                    kg: parseFloat(massaMagraKgSpan.textContent) || null
+                },
+                massaOssea: {
+                    perc: parseFloat(document.getElementById('massa-ossea-perc').value) || null,
+                    kg: parseFloat(massaOsseaKgSpan.textContent) || null
+                },
+                massaAcqua: {
+                    perc: parseFloat(document.getElementById('massa-acqua-perc').value) || null,
+                    kg: parseFloat(massaAcquaKgSpan.textContent) || null
+                },
+                esercizio: {
+                    tipo: document.getElementById('esercizio-tipo').value.trim() || null,
+                    tempo: parseInt(document.getElementById('esercizio-tempo').value) || null,
+                    intensita: parseInt(intensitaPercepitaInput.value) || null,
+                    quantita: document.getElementById('esercizio-quantita').value.trim() || null
+                },
+                dieta: {
+                    calorie: parseInt(document.getElementById('calorie').value) || null,
+                    grassi: parseInt(document.getElementById('grassi').value) || null,
+                    proteine: parseInt(document.getElementById('proteine').value) || null,
+                    carboidrati: parseInt(document.getElementById('carboidrati').value) || null,
+                    litriBevuti: parseFloat(document.getElementById('litri-bevuti').value) || null
+                },
+                notePersonali: notePersonaliTextarea.value.trim() || null
+            };
 
-    function localAISummary(recent, goals){
-      const days = recent.length;
-      const withPeso = recent.filter(d=>d.peso!=null);
-      const trend = withPeso.length>1 ? withPeso[withPeso.length-1].peso - withPeso[0].peso : 0;
-      const kcalAvg = (recent.map(d=> (d.dieta||{}).calorie||0).reduce((a,b)=>a+b,0) / Math.max(1, days)).toFixed(0);
-      const protAvg = (recent.map(d=> (d.dieta||{}).proteine||0).reduce((a,b)=>a+b,0) / Math.max(1, days)).toFixed(0);
-      const acquaAvg = (recent.map(d=> (d.dieta||{}).litriBevuti||0).reduce((a,b)=>a+b,0) / Math.max(1, days)).toFixed(1);
-      const kcalHit = goals.calories? ((kcalAvg/goals.calories)*100).toFixed(0): '--';
-      const protHit = goals.protein? ((protAvg/goals.protein)*100).toFixed(0): '--';
-      const acquaHit = goals.water? ((acquaAvg/goals.water)*100).toFixed(0): '--';
-      const direction = trend<0? 'in discesa ✅':'stabile/in salita ⚠️';
-      return `
-        <p><strong>Trend peso:</strong> ${direction} (${trend.toFixed(1)} kg negli ultimi ${days} giorni).</p>
-        <p><strong>Media calorie:</strong> ${kcalAvg} (${kcalHit==='--'?'senza target':kcalHit+'% del target'}).</p>
-        <p><strong>Media proteine:</strong> ${protAvg}g (${protHit==='--'?'senza target':protHit+'% del target'}).</p>
-        <p><strong>Media acqua:</strong> ${acquaAvg}L (${acquaHit==='--'?'senza target':acquaHit+'% del target'}).</p>
-        <hr class="my-3">
-        <p><strong>Next week playbook:</strong></p>
-        <ul class="list-disc ml-6">
-          <li>Allinea le calorie a ±5% del target giornaliero.</li>
-          <li>Proteine &ge; ${goals.protein || 'il tuo target'} g/die, distribuite in 3–4 pasti.</li>
-          <li>3 sessioni cardio (20–30′) + 2 sedute forza corpo libero.</li>
-          <li>Acqua: ${goals.water || '≥2'} L/die, 50% entro mezzogiorno.</li>
-        </ul>`;
-    }
+            const docRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/dailyEntries`, selectedDate);
+            try {
+                await setDoc(docRef, data, { merge: true });
+                showMessage("Dati giornalieri salvati con successo!");
 
-    getSummaryBtn.addEventListener('click', ()=>{
-      aiSummaryCard.classList.remove('hidden');
-      aiSummaryContent.innerHTML = '<p class="text-center text-gray-500">Analisi in corso... ✨</p>';
-      const all = getAllDaily().sort((a,b)=> new Date(a.data)-new Date(b.data));
-      const recent = all.slice(-14);
-      aiSummaryContent.innerHTML = localAISummary(recent, state.goals);
-      showMessage('Analisi generata!');
-    });
+                // Check and set initial weight if it's the first entry with a weight value
+                if (initialWeight === null && data.peso !== null) {
+                    const settingsDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings`, 'userProfile');
+                    await setDoc(settingsDocRef, { initialWeight: data.peso }, { merge: true });
+                    initialWeight = data.peso;
+                    console.log(`Initial weight set to: ${initialWeight}kg`);
+                }
+            } catch (error) {
+                console.error("Errore nel salvare i dati giornalieri:", error);
+                showMessage("Errore nel salvare i dati.", true);
+            }
+        });
 
-    // ======= bootstrap =======
-    window.onload = ()=>{
-      userIdDisplay.textContent = userId;
-      // populate settings
-      if (state.altezza) altezzaInput.value = state.altezza;
-      dailyWaterGoalInput.value = state.goals.water || '';
-      dailyCaloriesGoalInput.value = state.goals.calories || '';
-      dailyProteinGoalInput.value = state.goals.protein || '';
-      dailyCarbsGoalInput.value = state.goals.carbs || '';
-      dailyFatsGoalInput.value = state.goals.fats || '';
+        // Salva le impostazioni dell'utente
+        saveSettingsBtn.addEventListener('click', async () => {
+            if (!auth.currentUser) {
+                showMessage("Attendere l'autenticazione.", true);
+                return;
+            }
+            
+            const altezza = parseFloat(altezzaInput.value);
+            const waterGoal = parseFloat(dailyWaterGoalInput.value);
+            const caloriesGoal = parseInt(dailyCaloriesGoalInput.value);
+            const proteinGoal = parseInt(dailyProteinGoalInput.value);
+            const carbsGoal = parseInt(dailyCarbsGoalInput.value);
+            const fatsGoal = parseInt(dailyFatsGoalInput.value);
 
-      fetchDailyDataForDate(selectedDate);
-      const all = getAllDaily().sort((a,b)=> new Date(b.data)-new Date(a.data));
-      renderHistory(all);
-      updateOverallProgress(all);
-      updateCharts(all);
-    };
-  </script>
+            const settings = {};
+            if (!isNaN(altezza) && altezza > 0) settings.altezza = altezza;
+            if (!isNaN(waterGoal) && waterGoal >= 0) settings.dailyWaterGoal = waterGoal;
+            if (!isNaN(caloriesGoal) && caloriesGoal >= 0) settings.dailyCaloriesGoal = caloriesGoal;
+            if (!isNaN(proteinGoal) && proteinGoal >= 0) settings.dailyProteinGoal = proteinGoal;
+            if (!isNaN(carbsGoal) && carbsGoal >= 0) settings.dailyCarbsGoal = carbsGoal;
+            if (!isNaN(fatsGoal) && fatsGoal >= 0) settings.dailyFatsGoal = fatsGoal;
+
+            if (Object.keys(settings).length === 0) {
+                showMessage("Inserisci almeno un valore valido.", true);
+                return;
+            }
+            
+            try {
+                const settingsDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings`, 'userProfile');
+                await setDoc(settingsDocRef, settings, { merge: true });
+                userHeight = settings.altezza !== undefined ? settings.altezza : userHeight;
+                dailyWaterGoal = settings.dailyWaterGoal !== undefined ? settings.dailyWaterGoal : dailyWaterGoal;
+                dailyCaloriesGoal = settings.dailyCaloriesGoal !== undefined ? settings.dailyCaloriesGoal : dailyCaloriesGoal;
+                dailyProteinGoal = settings.dailyProteinGoal !== undefined ? settings.dailyProteinGoal : dailyProteinGoal;
+                dailyCarbsGoal = settings.dailyCarbsGoal !== undefined ? settings.dailyCarbsGoal : dailyCarbsGoal;
+                dailyFatsGoal = settings.dailyFatsGoal !== undefined ? settings.dailyFatsGoal : dailyFatsGoal;
+                updateCalculations();
+                showMessage("Impostazioni salvate con successo!");
+            } catch (error) {
+                console.error("Errore nel salvare le impostazioni:", error);
+                showMessage("Errore nel salvare le impostazioni.", true);
+            }
+        });
+
+        // Salva i dati settimanali
+        saveWeeklyBtn.addEventListener('click', async () => {
+             if (!auth.currentUser) {
+                showMessage("Attendere l'autenticazione.", true);
+                return;
+            }
+            
+            const data = {
+                data: new Date().toISOString().slice(0, 10),
+                misureCorpo: {
+                    vita: parseFloat(document.getElementById('cm-vita').value) || null,
+                    fianchi: parseFloat(document.getElementById('cm-fianchi').value) || null,
+                    braccio: parseFloat(document.getElementById('cm-braccio').value) || null,
+                    coscia: parseFloat(document.getElementById('cm-coscia').value) || null
+                },
+                metabolismoBasale: parseFloat(document.getElementById('kcal-basale').value) || null,
+                frequenzaCardiacaRiposo: parseInt(document.getElementById('bpm-riposo').value) || null
+            };
+
+            try {
+                const weeklyCollectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/weeklySummaries`);
+                await addDoc(weeklyCollectionRef, data);
+                showMessage("Riepilogo settimanale salvato con successo!");
+            } catch (error) {
+                console.error("Errore nel salvare il riepilogo settimanale:", error);
+                showMessage("Errore nel salvare il riepilogo.", true);
+            }
+        });
+
+        // Funzione per calcolare e mostrare i progressi generali
+        function updateOverallProgress(history) {
+            if (history.length === 0 || initialWeight === null) {
+                weeklyAdherenceSpan.textContent = '--';
+                totalProgressSpan.textContent = '--';
+                return;
+            }
+
+            const sortedHistory = history.sort((a, b) => new Date(a.data) - new Date(b.data));
+            const firstEntry = sortedHistory.find(d => d.peso !== null);
+            const lastEntry = sortedHistory.slice().reverse().find(d => d.peso !== null);
+            
+            if (!firstEntry || !lastEntry) {
+                 weeklyAdherenceSpan.textContent = '--';
+                 totalProgressSpan.textContent = '--';
+                 return;
+            }
+            
+            const currentWeight = lastEntry.peso;
+
+            // Calcolo progresso totale
+            const weightLost = initialWeight - currentWeight;
+            const totalProgress = (weightLost / targetWeightLoss) * 100;
+            totalProgressSpan.textContent = `${totalProgress.toFixed(1)}%`;
+
+            // Calcolo aderenza settimanale
+            const today = new Date();
+            const firstDate = new Date(firstEntry.data);
+            const daysPassed = (today - firstDate) / (1000 * 60 * 60 * 24);
+            const weeksPassed = daysPassed / 7;
+            const targetLossThisWeek = weeksPassed > 0 ? weeklyWeightLossTarget : 0;
+            const weeklyLoss = initialWeight - currentWeight;
+            
+            let weeklyAdherence = 0;
+            if (targetLossThisWeek > 0) {
+                 weeklyAdherence = (weeklyLoss / (weeksPassed * weeklyWeightLossTarget)) * 100;
+            }
+
+            weeklyAdherenceSpan.textContent = `${weeklyAdherence.toFixed(1)}%`;
+        }
+        
+        // Ascolta gli aggiornamenti in tempo reale sui dati giornalieri
+        function setupDailyDataListener() {
+            if (!auth.currentUser) return;
+            const collectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/dailyEntries`);
+            onSnapshot(collectionRef, (snapshot) => {
+                const history = [];
+                snapshot.forEach(doc => {
+                    history.push(doc.data());
+                });
+
+                // Ordina per data decrescente
+                history.sort((a, b) => new Date(b.data) - new Date(a.data));
+                renderHistory(history);
+                updateOverallProgress(history);
+                updateCharts(history);
+            }, (error) => {
+                console.error("Errore nel listener dei dati giornalieri:", error);
+                loadingHistory.textContent = "Errore nel caricare lo storico.";
+            });
+        }
+        
+         // Ascolta gli aggiornamenti in tempo reale sui dati settimanali
+        function setupWeeklyDataListener() {
+            if (!auth.currentUser) return;
+            const collectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/weeklySummaries`);
+            onSnapshot(collectionRef, (snapshot) => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === "added") {
+                        console.log("Nuovo riepilogo settimanale aggiunto:", change.doc.data());
+                    }
+                });
+            }, (error) => {
+                 console.error("Errore nel listener dei dati settimanali:", error);
+            });
+        }
+        
+        // Renderizza i dati storici
+        function renderHistory(data) {
+            if (data.length === 0) {
+                historyContainer.innerHTML = '<p class="text-gray-500">Nessun dato storico trovato. Salva i tuoi progressi!</p>';
+                loadingHistory.style.display = 'none';
+                return;
+            }
+
+            loadingHistory.style.display = 'none';
+            historyContainer.innerHTML = '';
+            data.forEach(item => {
+                // Calcola le percentuali di raggiungimento obiettivi giornalieri
+                const waterPerc = dailyWaterGoal ? (item.dieta.litriBevuti / dailyWaterGoal) * 100 : '--';
+                const kcalPerc = dailyCaloriesGoal ? (item.dieta.calorie / dailyCaloriesGoal) * 100 : '--';
+                const proteinPerc = dailyProteinGoal ? (item.dieta.proteine / dailyProteinGoal) * 100 : '--';
+                const carbsPerc = dailyCarbsGoal ? (item.dieta.carboidrati / dailyCarbsGoal) * 100 : '--';
+                const fatsPerc = dailyFatsGoal ? (item.dieta.grassi / dailyFatsGoal) * 100 : '--';
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = 'card bg-gray-50 p-4 mb-4';
+                dayCard.innerHTML = `
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Dati del ${item.data}</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><strong>Peso:</strong> ${item.peso !== null ? item.peso + ' kg' : '--'}</li>
+                        <li><strong>BMI:</strong> ${userHeight && item.peso !== null ? (item.peso / ((userHeight / 100) * (userHeight / 100))).toFixed(2) : '--'}</li>
+                        <li><strong>Massa Grassa:</strong> ${item.massaGrassa.perc !== null ? item.massaGrassa.perc + '% / ' + (item.massaGrassa.kg !== null ? item.massaGrassa.kg + ' kg' : '--') : '--'}</li>
+                        <li><strong>Massa Magra:</strong> ${item.massaMagra.perc !== null ? item.massaMagra.perc + '% / ' + (item.massaMagra.kg !== null ? item.massaMagra.kg + ' kg' : '--') : '--'}</li>
+                        <li><strong>Massa Ossea:</strong> ${item.massaOssea.perc !== null ? item.massaOssea.perc + '% / ' + (item.massaOssea.kg !== null ? item.massaOssea.kg + ' kg' : '--') : '--'}</li>
+                        <li><strong>Massa Acqua:</strong> ${item.massaAcqua.perc !== null ? item.massaAcqua.perc + '% / ' + (item.massaAcqua.kg !== null ? item.massaAcqua.kg + ' kg' : '--') : '--'}</li>
+                        <li><strong>Esercizio:</strong> ${item.esercizio.tipo || '--'} (${item.esercizio.tempo !== null ? item.esercizio.tempo + ' min' : '--'}, ${item.esercizio.quantita || '--'})</li>
+                        <li><strong>Intensità Percepita:</strong> ${item.esercizio.intensita || '--'}</li>
+                        <li><strong>Calorie:</strong> ${item.dieta.calorie !== null ? item.dieta.calorie + ' kcal' : '--'}</li>
+                        <li><strong>Macro:</strong> G: ${item.dieta.grassi !== null ? item.dieta.grassi + 'g' : '--'}, P: ${item.dieta.proteine !== null ? item.dieta.proteine + 'g' : '--'}, C: ${item.dieta.carboidrati !== null ? item.dieta.carboidrati + 'g' : '--'}</li>
+                        <li><strong>Litri Bevuti:</strong> ${item.dieta.litriBevuti !== null ? item.dieta.litriBevuti + 'L' : '--'}</li>
+                        <li><strong>Creatina:</strong> ${item.creatina ? 'Sì' : 'No'}</li>
+                        <li><strong>Note:</strong> ${item.notePersonali || '--'}</li>
+                        <hr class="my-2 border-gray-300">
+                        <li><strong>Obiettivo Acqua:</strong> ${waterPerc !== '--' ? waterPerc.toFixed(1) + '%' : '--'}</li>
+                        <li><strong>Obiettivo Calorie:</strong> ${kcalPerc !== '--' ? kcalPerc.toFixed(1) + '%' : '--'}</li>
+                        <li><strong>Obiettivo Proteine:</strong> ${proteinPerc !== '--' ? proteinPerc.toFixed(1) + '%' : '--'}</li>
+                        <li><strong>Obiettivo Carboidrati:</strong> ${carbsPerc !== '--' ? carbsPerc.toFixed(1) + '%' : '--'}</li>
+                        <li><strong>Obiettivo Grassi:</strong> ${fatsPerc !== '--' ? fatsPerc.toFixed(1) + '%' : '--'}</li>
+                    </ul>
+                `;
+                historyContainer.appendChild(dayCard);
+            });
+        }
+        
+        // Funzione per aggiornare i grafici
+        function updateCharts(data) {
+            if (data.length === 0) return;
+
+            // Ordina i dati per data crescente per i grafici
+            const sortedData = data.sort((a, b) => new Date(a.data) - new Date(b.data));
+            const labels = sortedData.map(item => item.data);
+
+            const weightData = sortedData.map(item => item.peso);
+            const massaGrassaData = sortedData.map(item => item.massaGrassa.perc);
+            const massaMagraData = sortedData.map(item => item.massaMagra.perc);
+            const calorieData = sortedData.map(item => item.dieta.calorie);
+            const proteinData = sortedData.map(item => item.dieta.proteine);
+            const carbsData = sortedData.map(item => item.dieta.carboidrati);
+            const fatsData = sortedData.map(item => item.dieta.grassi);
+            const waterData = sortedData.map(item => item.dieta.litriBevuti);
+
+            // Chart per Peso e Masse Corporee
+            const weightCtx = document.getElementById('weight-chart').getContext('2d');
+            if (weightChart) {
+                weightChart.destroy();
+            }
+            weightChart = new Chart(weightCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Peso (kg)',
+                            data: weightData,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                            fill: true,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Massa Grassa (%)',
+                            data: massaGrassaData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            fill: true,
+                            tension: 0.2
+                        },
+                         {
+                            label: 'Massa Magra (%)',
+                            data: massaMagraData,
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                            fill: true,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+
+            // Chart per Dieta
+            const dietCtx = document.getElementById('diet-chart').getContext('2d');
+             if (dietChart) {
+                dietChart.destroy();
+            }
+            dietChart = new Chart(dietCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Calorie (kcal)',
+                            data: calorieData,
+                            borderColor: '#fbbf24',
+                            backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Proteine (g)',
+                            data: proteinData,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Carboidrati (g)',
+                            data: carbsData,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Grassi (g)',
+                            data: fatsData,
+                            borderColor: '#d946ef',
+                            backgroundColor: 'rgba(217, 70, 239, 0.2)',
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Acqua (L)',
+                            data: waterData,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                            fill: false,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        getSummaryBtn.addEventListener('click', async () => {
+            if (!auth.currentUser) {
+                showMessage("Attendere l'autenticazione per generare il riassunto.", true);
+                return;
+            }
+
+            aiSummaryCard.classList.remove('hidden');
+            aiSummaryContent.innerHTML = '<p class="text-center text-gray-500">Analisi in corso... ✨</p>';
+            getSummaryBtn.disabled = true;
+
+            try {
+                // Fetch recent data to summarize
+                const dailyDocs = await getDocs(collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/dailyEntries`));
+                const historyData = [];
+                dailyDocs.forEach(doc => historyData.push(doc.data()));
+                
+                // Sort by date and get a reasonable number of recent entries
+                historyData.sort((a, b) => new Date(a.data) - new Date(b.data));
+                const recentData = historyData.slice(-14); // Last 14 days
+
+                const userGoals = {
+                    initialWeight: initialWeight,
+                    targetWeightLoss: targetWeightLoss,
+                    dailyCaloriesGoal: dailyCaloriesGoal,
+                    dailyProteinGoal: dailyProteinGoal,
+                    dailyCarbsGoal: dailyCarbsGoal,
+                    dailyFatsGoal: dailyFatsGoal,
+                    dailyWaterGoal: dailyWaterGoal,
+                };
+                
+                const initialPrompt = `Analizza i seguenti dati di fitness e dieta e fornisci un riassunto motivazionale e actionable. Valuta il mio progresso in relazione ai miei obiettivi e offri suggerimenti specifici per migliorare.
+
+I miei obiettivi:
+Perdita peso totale: ${userGoals.targetWeightLoss} kg
+Peso iniziale: ${userGoals.initialWeight} kg
+Obiettivo calorico: ${userGoals.dailyCaloriesGoal} kcal
+Obiettivo proteine: ${userGoals.dailyProteinGoal} g
+Obiettivo carboidrati: ${userGoals.dailyCarbsGoal} g
+Obiettivo grassi: ${userGoals.dailyFatsGoal} g
+Obiettivo acqua: ${userGoals.dailyWaterGoal} L
+
+I miei dati recenti (ultimi 14 giorni):
+${JSON.stringify(recentData, null, 2)}
+`;
+                
+                const systemPrompt = "Sei un personal trainer e un analista di dati. La tua risposta deve essere in italiano, amichevole e motivazionale. Analizza i dati forniti dall'utente e fornisci un riassunto conciso dei suoi progressi, evidenziando successi e aree di miglioramento. Evita di usare tecnicismi e concentrati su un linguaggio semplice e incoraggiante. Includi un consiglio pratico per la prossima settimana.";
+
+                const payload = {
+                    contents: [{ parts: [{ text: initialPrompt }] }],
+                    tools: [{ "google_search": {} }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                    generationConfig: {
+                        temperature: 0.7,
+                        topP: 1,
+                        topK: 1
+                    }
+                };
+
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (generatedText) {
+                    aiSummaryContent.innerHTML = `<div class="prose">${generatedText.replace(/\n/g, '<br>')}</div>`;
+                    showMessage("Analisi completata!", false);
+                } else {
+                    aiSummaryContent.textContent = "Non è stato possibile generare l'analisi. Riprova più tardi.";
+                    showMessage("Errore nella generazione del riassunto.", true);
+                }
+
+            } catch (error) {
+                console.error('Errore nella generazione del riassunto:', error);
+                aiSummaryContent.textContent = `Errore: ${error.message}. Non è stato possibile generare l'analisi.`;
+                showMessage("Errore nella generazione del riassunto.", true);
+            } finally {
+                getSummaryBtn.disabled = false;
+            }
+        });
+        
+        // Esegui l'inizializzazione al caricamento della pagina
+        window.onload = function () {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('debug');
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userIdDisplay.textContent = userId;
+
+                        // Carica le impostazioni utente
+                        const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/settings`, 'userProfile');
+                        const settingsSnap = await getDoc(settingsDocRef);
+                        if (settingsSnap.exists()) {
+                            const settingsData = settingsSnap.data();
+                            userHeight = settingsData.altezza;
+                            initialWeight = settingsData.initialWeight || null;
+                            dailyWaterGoal = settingsData.dailyWaterGoal || null;
+                            dailyCaloriesGoal = settingsData.dailyCaloriesGoal || null;
+                            dailyProteinGoal = settingsData.dailyProteinGoal || null;
+                            dailyCarbsGoal = settingsData.dailyCarbsGoal || null;
+                            dailyFatsGoal = settingsData.dailyFatsGoal || null;
+
+                            // Popola i campi di input
+                            altezzaInput.value = userHeight || '';
+                            dailyWaterGoalInput.value = dailyWaterGoal || '';
+                            dailyCaloriesGoalInput.value = dailyCaloriesGoal || '';
+                            dailyProteinGoalInput.value = dailyProteinGoal || '';
+                            dailyCarbsGoalInput.value = dailyCarbsGoal || '';
+                            dailyFatsGoalInput.value = dailyFatsGoal || '';
+                        }
+
+                        // Avvia i listener e carica i dati giornalieri
+                        fetchDailyDataForDate(selectedDate);
+                        setupDailyDataListener();
+                        setupWeeklyDataListener();
+                    } else {
+                        userId = null;
+                        try {
+                            await signInAnonymously(auth);
+                        } catch (error) {
+                            console.error("Errore nell'autenticazione anonima:", error);
+                            showMessage("Errore di autenticazione. Riprova più tardi.", true);
+                        }
+                    }
+                });
+
+                if (initialAuthToken) {
+                    signInWithCustomToken(auth, initialAuthToken).catch(async (error) => {
+                        console.error("Errore nell'autenticazione con token personalizzato:", error);
+                        try {
+                            await signInAnonymously(auth);
+                        } catch (anonError) {
+                            console.error("Errore nel fallback all'autenticazione anonima:", anonError);
+                        }
+                    });
+                } else {
+                    signInAnonymously(auth).catch((error) => {
+                        console.error("Errore nell'autenticazione anonima:", error);
+                    });
+                }
+            } catch (e) {
+                console.error("Errore nell'inizializzazione di Firebase:", e);
+                showMessage("Errore: Impossibile connettersi al database.", true);
+            }
+        };
+
+    </script>
 </body>
 </html>
